@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мамины хиты 🎵</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --pink: #e91e8c; --pink-light: #ff6fb7; --pink-dark: #b5116b;
+    --purple: #7c3aed; --purple-light: #a855f7;
+    --gold: #f59e0b; --gold-light: #fbbf24;
+    --bg: #0f0a1e; --bg2: #1a1030; --bg3: #241540;
+    --glass: rgba(255,255,255,0.06); --glass-border: rgba(255,255,255,0.12);
+    --text: #f0e6ff; --text-muted: rgba(240,230,255,0.55);
+    --radius: 16px; --radius-sm: 10px;
+  }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; position:relative; }
+  body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background: radial-gradient(ellipse at 20% 20%,rgba(124,58,237,0.25) 0%,transparent 50%), radial-gradient(ellipse at 80% 80%,rgba(233,30,140,0.25) 0%,transparent 50%), radial-gradient(ellipse at 50% 50%,rgba(245,158,11,0.08) 0%,transparent 60%); }
+  .wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:24px 20px; }
+  .header { text-align:center; margin-bottom:32px; }
+  .header h1 { font-size:clamp(2rem,5vw,3.2rem); font-weight:800; letter-spacing:-1px; line-height:1.1; background:linear-gradient(135deg,var(--pink-light),var(--purple-light),var(--gold-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .header .subtitle { color:var(--text-muted); font-size:1rem; margin-top:6px; }
+  .progress-bar-wrap { margin:18px auto 0; max-width:420px; background:rgba(255,255,255,0.08); border-radius:999px; height:8px; overflow:hidden; }
+  .progress-bar-fill { height:100%; background:linear-gradient(90deg,var(--pink),var(--purple-light)); border-radius:999px; transition:width 0.5s ease; }
+  .progress-label { font-size:0.82rem; color:var(--text-muted); margin-top:6px; }
+  .card { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+  .song-info-row { display:flex; align-items:center; gap:14px; padding:20px 24px; border-radius:var(--radius) var(--radius) 0 0; border-bottom:1px solid var(--glass-border); background:rgba(124,58,237,0.1); }
+  .song-number { width:48px; height:48px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--pink),var(--purple)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.1rem; }
+  .song-name-text { font-size:1rem; color:var(--text-muted); }
+  .song-name-text span { display:block; font-size:1.2rem; color:var(--text); font-weight:600; margin-top:2px; }
+  .player-body { padding:20px 24px; }
+  .audio-player-wrap { background:rgba(0,0,0,0.3); border-radius:var(--radius-sm); padding:20px 24px; margin-bottom:20px; border:1px solid var(--glass-border); display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .audio-visual { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,var(--pink-dark),var(--purple)); display:flex; align-items:center; justify-content:center; font-size:32px; box-shadow:0 0 0 0 rgba(233,30,140,0.4); transition:box-shadow 0.3s; }
+  .audio-visual.playing { animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(233,30,140,0.5)} 70%{box-shadow:0 0 0 20px rgba(233,30,140,0)} 100%{box-shadow:0 0 0 0 rgba(233,30,140,0)} }
+  .audio-status { font-size:0.9rem; color:var(--text-muted); }
+  .audio-status.playing { color:var(--pink-light); font-weight:600; }
+  .time-bar-wrap { width:100%; max-width:400px; }
+  .time-bar { width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:999px; overflow:hidden; }
+  .time-bar-fill { height:100%; background:linear-gradient(90deg,var(--pink),var(--purple-light)); border-radius:999px; width:0%; transition:width 0.15s linear; }
+  .time-labels { display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:4px; }
+  .btn-row { display:flex; gap:12px; flex-wrap:wrap; }
+  .btn { border:none; cursor:pointer; font-size:0.95rem; font-weight:600; border-radius:var(--radius-sm); padding:12px 22px; transition:all 0.15s; display:inline-flex; align-items:center; gap:8px; font-family:inherit; }
+  .btn:active { transform:scale(0.97); }
+  .btn-primary { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; box-shadow:0 4px 20px rgba(233,30,140,0.35); }
+  .btn-primary:hover { box-shadow:0 6px 28px rgba(233,30,140,0.5); filter:brightness(1.08); }
+  .btn-secondary { background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); color:var(--text); }
+  .btn-secondary:hover { background:rgba(255,255,255,0.14); }
+  .btn-gold { background:linear-gradient(135deg,var(--gold),#fb923c); color:#1a0a00; font-weight:700; box-shadow:0 4px 20px rgba(245,158,11,0.35); }
+  .btn-gold:hover { filter:brightness(1.08); }
+  .btn-answer { background:rgba(124,58,237,0.15); border:1px solid rgba(168,85,247,0.3); color:var(--purple-light); }
+  .btn-answer:hover { background:rgba(124,58,237,0.25); }
+  .answer-reveal { margin-top:16px; padding:14px 18px; border-radius:var(--radius-sm); background:rgba(124,58,237,0.15); border:1px solid rgba(168,85,247,0.3); color:var(--purple-light); font-size:1rem; display:none; }
+  .answer-reveal.shown { display:block; }
+  .answer-reveal strong { color:#fff; font-size:1.15rem; display:block; margin-bottom:2px; }
+  .divider { height:1px; background:var(--glass-border); margin:28px 0; }
+  .section-title { font-size:1rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-muted); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .players-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+  .player-card { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:14px 16px; display:flex; flex-direction:column; gap:10px; transition:border-color 0.2s,background 0.2s; }
+  .player-card:hover { border-color:rgba(233,30,140,0.3); background:rgba(233,30,140,0.05); }
+  .player-top { display:flex; align-items:center; gap:10px; }
+  .player-avatar { width:36px; height:36px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--pink-dark),var(--purple)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; }
+  .player-name { font-size:0.88rem; font-weight:600; line-height:1.2; }
+  .player-score { font-size:1.8rem; font-weight:800; color:var(--gold-light); line-height:1; }
+  .btn-plus { width:100%; border:none; cursor:pointer; padding:8px; border-radius:8px; background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; font-size:1.1rem; font-weight:800; transition:all 0.15s; font-family:inherit; box-shadow:0 2px 10px rgba(233,30,140,0.3); }
+  .btn-plus:hover { filter:brightness(1.1); box-shadow:0 4px 16px rgba(233,30,140,0.5); }
+  .btn-plus:active { transform:scale(0.95); }
+  .score-bump { animation:bump 0.35s ease; }
+  @keyframes bump { 0%{transform:scale(1)} 50%{transform:scale(1.4);color:#fff} 100%{transform:scale(1)} }
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center; padding:20px; }
+  .modal-bg.open { display:flex; }
+  .modal { background:linear-gradient(135deg,var(--bg2),var(--bg3)); border:1px solid var(--glass-border); border-radius:var(--radius); padding:28px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; position:relative; }
+  .modal h2 { font-size:1.4rem; font-weight:800; margin-bottom:20px; text-align:center; }
+  .rank-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+  .rank-item { display:flex; align-items:center; gap:14px; padding:12px 16px; background:rgba(255,255,255,0.05); border-radius:var(--radius-sm); border:1px solid var(--glass-border); }
+  .rank-pos { font-size:1.2rem; font-weight:800; width:32px; text-align:center; flex-shrink:0; }
+  .rank-pos.gold { color:var(--gold-light); } .rank-pos.silver { color:#d1d5db; } .rank-pos.bronze { color:#cd7c3a; }
+  .rank-name { flex:1; font-weight:600; }
+  .rank-pts { font-size:1.3rem; font-weight:800; color:var(--gold-light); }
+  .modal-close { position:absolute; top:16px; right:16px; background:rgba(255,255,255,0.08); border:none; cursor:pointer; width:32px; height:32px; border-radius:50%; color:var(--text); font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:background 0.15s; }
+  .modal-close:hover { background:rgba(255,255,255,0.15); }
+  .song-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+  .song-list-item { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:var(--radius-sm); background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); cursor:pointer; transition:background 0.15s; }
+  .song-list-item:hover { background:rgba(233,30,140,0.1); border-color:rgba(233,30,140,0.25); }
+  .song-list-item.active { background:rgba(233,30,140,0.15); border-color:rgba(233,30,140,0.4); }
+  .song-list-num { font-size:0.75rem; color:var(--text-muted); width:22px; text-align:right; flex-shrink:0; }
+  .song-list-info { flex:1; }
+  .song-list-title { font-size:0.9rem; font-weight:600; }
+  .song-list-artist { font-size:0.78rem; color:var(--text-muted); margin-top:1px; }
+  .song-list-tag { font-size:0.68rem; padding:2px 7px; border-radius:999px; font-weight:600; flex-shrink:0; }
+  .tag-ru { background:rgba(233,30,140,0.2); color:var(--pink-light); }
+  .tag-en { background:rgba(124,58,237,0.2); color:var(--purple-light); }
+  .tag-world { background:rgba(245,158,11,0.2); color:var(--gold-light); }
+  .final-screen { display:none; text-align:center; padding:40px 20px; }
+  .final-screen.shown { display:block; }
+  .final-title { font-size:clamp(2.2rem,6vw,4rem); font-weight:900; line-height:1.1; margin-bottom:10px; background:linear-gradient(135deg,var(--pink-light),var(--gold-light),var(--purple-light)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .final-sub { font-size:1.1rem; color:var(--text-muted); margin-bottom:32px; }
+  .top3 { display:flex; justify-content:center; align-items:flex-end; gap:16px; margin-bottom:40px; flex-wrap:wrap; }
+  .top3-card { border-radius:var(--radius); padding:20px 18px; text-align:center; min-width:130px; border:1px solid var(--glass-border); }
+  .top3-card.pos1 { background:linear-gradient(180deg,rgba(245,158,11,0.2),rgba(245,158,11,0.05)); border-color:rgba(245,158,11,0.4); order:2; min-width:150px; }
+  .top3-card.pos2 { background:linear-gradient(180deg,rgba(200,200,200,0.15),rgba(200,200,200,0.03)); border-color:rgba(200,200,200,0.3); order:1; }
+  .top3-card.pos3 { background:linear-gradient(180deg,rgba(205,124,58,0.15),rgba(205,124,58,0.03)); border-color:rgba(205,124,58,0.3); order:3; }
+  .top3-emoji { font-size:2.5rem; display:block; margin-bottom:8px; }
+  .top3-name { font-weight:700; font-size:1rem; margin-bottom:4px; }
+  .top3-pts { font-size:1.8rem; font-weight:900; color:var(--gold-light); }
+  .final-table-wrap { max-width:400px; margin:0 auto 32px; }
+  .final-table { width:100%; border-collapse:collapse; }
+  .final-table th { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); padding:8px 12px; text-align:left; }
+  .final-table td { padding:10px 12px; border-top:1px solid var(--glass-border); }
+  .confetti-piece { position:fixed; border-radius:2px; top:-20px; animation:confettiFall linear forwards; z-index:200; pointer-events:none; }
+  @keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:1} 80%{opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:linear-gradient(135deg,var(--pink-dark),var(--purple)); color:#fff; padding:12px 24px; border-radius:999px; font-weight:600; font-size:0.9rem; z-index:300; transition:transform 0.3s ease; white-space:nowrap; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .action-bar { position:sticky; bottom:0; z-index:10; padding:14px 0; background:linear-gradient(to top,var(--bg) 70%,transparent); display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:28px; }
+  .file-error { background:rgba(220,50,50,0.1); border:1px solid rgba(220,50,50,0.3); border-radius:var(--radius-sm); padding:12px 16px; color:#ff8080; font-size:0.85rem; margin-top:12px; display:none; line-height:1.6; }
+  .file-error.shown { display:block; }
+  .file-error code { background:rgba(255,255,255,0.08); padding:2px 6px; border-radius:4px; font-size:0.82rem; }
+  @media(max-width:600px) { .players-grid{grid-template-columns:repeat(2,1fr)} .btn-row{flex-direction:column} .top3{gap:10px} }
+</style>
+</head>
+<body>
+
+<div id="mainGame">
+<div class="wrap">
+
+  <div class="header">
+    <h1>🎵 Мамины хиты</h1>
+    <p class="subtitle">Музыкальная викторина ко дню рождения</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+    </div>
+    <p class="progress-label" id="progressLabel">Выберите песню для начала</p>
+  </div>
+
+  <div class="player-section card" style="margin-bottom:24px">
+    <div class="song-info-row">
+      <div class="song-number" id="songNumber">1</div>
+      <div class="song-name-text">
+        Текущая песня
+        <span id="songTitle">Нажмите ▶ чтобы начать</span>
+      </div>
+    </div>
+    <div class="player-body">
+      <div class="audio-player-wrap">
+        <div class="audio-visual" id="audioVisual">🎵</div>
+        <div class="audio-status" id="audioStatus">Готов к воспроизведению</div>
+        <div class="time-bar-wrap">
+          <div class="time-bar"><div class="time-bar-fill" id="timeBarFill"></div></div>
+          <div class="time-labels"><span id="timeCur">0:00</span><span id="timeDur">0:10</span></div>
+        </div>
+      </div>
+
+      <audio id="audioEl" preload="none"></audio>
+
+      <div class="file-error" id="fileError">
+        ⚠️ Файл не найден: <code id="fileErrorPath"></code><br>
+        Убедитесь что папка <code>music/</code> находится рядом с этим HTML-файлом и имена файлов совпадают точно.
+        <br><br>
+        <strong style="color:#ffb3b3">Открывайте файл через локальный веб-сервер</strong>, а не двойным кликом —
+        браузер блокирует загрузку локальных файлов из соображений безопасности.
+        <br>Команда: <code>python -m http.server 8080</code> → затем откройте <code>http://localhost:8080</code>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="playSnippet()">▶ Играть / Заново</button>
+        <button class="btn btn-secondary" onclick="stopAudio()">⏹ Стоп</button>
+        <button class="btn btn-answer" onclick="toggleAnswer()">🔍 Ответ (ведущий)</button>
+        <button class="btn btn-gold" onclick="nextSong()">Следующая ➜</button>
+      </div>
+
+      <div class="answer-reveal" id="answerReveal">
+        <strong id="answerText"></strong>
+        <span id="answerArtist"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="scoreboard-section">
+    <div class="section-title">🏆 Игроки и очки</div>
+    <div class="players-grid" id="playersGrid"></div>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-secondary" onclick="openRanking()">📊 Рейтинг</button>
+    <button class="btn btn-secondary" onclick="openSongList()">🎵 Все песни</button>
+    <button class="btn btn-secondary" onclick="resetScores()">🔄 Сбросить очки</button>
+  </div>
+
+</div>
+</div>
+
+<!-- FINAL -->
+<div class="wrap final-screen" id="finalScreen">
+  <div class="final-title">С днём рождения,<br>мама! ❤️</div>
+  <p class="final-sub">Игра завершена — все песни отгаданы! 🎉</p>
+  <div class="top3" id="top3"></div>
+  <div class="final-table-wrap card" style="padding:16px">
+    <p class="section-title" style="justify-content:center;margin-bottom:14px">Итоговая таблица</p>
+    <table class="final-table" id="finalTable"></table>
+  </div>
+  <button class="btn btn-primary" style="font-size:1.1rem;padding:16px 36px;margin-top:16px" onclick="restartGame()">🔄 Начать заново</button>
+</div>
+
+<!-- RANKING MODAL -->
+<div class="modal-bg" id="rankModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('rankModal')">✕</button>
+    <h2>📊 Текущий рейтинг</h2>
+    <ul class="rank-list" id="rankList"></ul>
+  </div>
+</div>
+
+<!-- SONG LIST MODAL -->
+<div class="modal-bg" id="songListModal">
+  <div class="modal" style="max-width:580px">
+    <button class="modal-close" onclick="closeModal('songListModal')">✕</button>
+    <h2>🎵 Все песни</h2>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:16px;text-align:center">Нажмите на песню чтобы перейти к ней</p>
+    <ul class="song-list" id="songListEl"></ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SONGS = [
+  {title:"Миллион алых роз",     artist:"Алла Пугачёва",               file:"pugacheva-million.mp3",          cat:"ru",    start:10},
+  {title:"Искала",                artist:"Земфира",                     file:"zemfira-iskala.mp3",             cat:"ru",    start:15},
+  {title:"Каждый раз",            artist:"Монеточка",                   file:"monetochka-kazhdyj.mp3",         cat:"ru",    start:20},
+  {title:"Вселенная бесконечна?", artist:"Noize MC",                    file:"noizemc-vselennaya.mp3",         cat:"ru",    start:10},
+  {title:"Полковнику никто не пишет", artist:"Би-2",                   file:"bi2-polkovniku.mp3",             cat:"ru",    start:15},
+  {title:"Это всё",               artist:"ДДТ",                         file:"ddt-eto-vse.mp3",                cat:"ru",    start:20},
+  {title:"Группа крови",          artist:"Кино",                        file:"kino-gruppa-krovi.mp3",          cat:"ru",    start:10},
+  {title:"Монетка",               artist:"ЛСП",                         file:"lsp-monetka.mp3",                cat:"ru",    start:20},
+  {title:"Малиновый закат",       artist:"Макс Корж",                   file:"korzh-malinovyj.mp3",            cat:"ru",    start:15},
+  {title:"Life",                  artist:"Zivert",                      file:"zivert-life.mp3",                cat:"ru",    start:10},
+  {title:"Kosandra",              artist:"Miyagi",                      file:"miyagi-kosandra.mp3",            cat:"ru",    start:15},
+  {title:"Сансара",               artist:"Баста",                       file:"basta-sansara.mp3",              cat:"ru",    start:20},
+  {title:"Положение",             artist:"Скриптонит",                  file:"skriptonit-polozhenie.mp3",      cat:"ru",    start:10},
+  {title:"Выбирать чудо",         artist:"Нюша",                        file:"nyusha-vibrat-chudo.mp3",        cat:"ru",    start:15},
+  {title:"Стыцамен",              artist:"Иван Дорн",                   file:"dorn-stycamen.mp3",              cat:"ru",    start:20},
+  {title:"Sorry",                 artist:"Justin Bieber",               file:"bieber-sorry.mp3",               cat:"en",    start:15},
+  {title:"Shape of You",          artist:"Ed Sheeran",                  file:"sheeran-shape-of-you.mp3",       cat:"en",    start:10},
+  {title:"Blinding Lights",       artist:"The Weeknd",                  file:"weeknd-blinding-lights.mp3",     cat:"en",    start:20},
+  {title:"Bad Guy",               artist:"Billie Eilish",               file:"eilish-bad-guy.mp3",             cat:"en",    start:10},
+  {title:"Blank Space",           artist:"Taylor Swift",                file:"swift-blank-space.mp3",          cat:"en",    start:15},
+  {title:"Hello",                 artist:"Adele",                       file:"adele-hello.mp3",                cat:"en",    start:10},
+  {title:"Uptown Funk",           artist:"Bruno Mars",                  file:"mars-uptown-funk.mp3",           cat:"en",    start:20},
+  {title:"Diamonds",              artist:"Rihanna",                     file:"rihanna-diamonds.mp3",           cat:"en",    start:15},
+  {title:"Roar",                  artist:"Katy Perry",                  file:"perry-roar.mp3",                 cat:"en",    start:10},
+  {title:"Lose Yourself",         artist:"Eminem",                      file:"eminem-lose-yourself.mp3",       cat:"en",    start:20},
+  {title:"Cheap Thrills",         artist:"Sia",                         file:"sia-cheap-thrills.mp3",          cat:"en",    start:15},
+  {title:"Sugar",                 artist:"Maroon 5",                    file:"maroon5-sugar.mp3",              cat:"en",    start:10},
+  {title:"Believer",              artist:"Imagine Dragons",             file:"imagine-dragons-believer.mp3",   cat:"en",    start:10},
+  {title:"Viva La Vida",          artist:"Coldplay",                    file:"coldplay-viva-la-vida.mp3",      cat:"en",    start:20},
+  {title:"Poker Face",            artist:"Lady Gaga",                   file:"gaga-poker-face.mp3",            cat:"en",    start:15},
+  {title:"Stitches",              artist:"Shawn Mendes",                file:"mendes-stitches.mp3",            cat:"en",    start:10},
+  {title:"Havana",                artist:"Camila Cabello",              file:"cabello-havana.mp3",             cat:"en",    start:10},
+  {title:"As It Was",             artist:"Harry Styles",                file:"styles-as-it-was.mp3",           cat:"en",    start:15},
+  {title:"New Rules",             artist:"Dua Lipa",                    file:"dualipa-new-rules.mp3",          cat:"en",    start:20},
+  {title:"Circles",               artist:"Post Malone",                 file:"postmalone-circles.mp3",         cat:"en",    start:15},
+  {title:"Say So",                artist:"Doja Cat",                    file:"dojacat-say-so.mp3",             cat:"en",    start:15},
+  {title:"Sweet but Psycho",      artist:"Ava Max",                     file:"avamax-sweet-psycho.mp3",        cat:"en",    start:10},
+  {title:"Señorita",              artist:"Shawn Mendes & Camila Cabello",file:"mendes-senorita.mp3",           cat:"en",    start:20},
+  {title:"Can't Stop the Feeling",artist:"Justin Timberlake",           file:"timberlake-cant-stop.mp3",       cat:"en",    start:20},
+  {title:"I Gotta Feeling",       artist:"Black Eyed Peas",             file:"bep-i-gotta-feeling.mp3",        cat:"en",    start:15},
+  {title:"Gangnam Style",         artist:"PSY",                         file:"psy-gangnam-style.mp3",          cat:"world", start:10},
+  {title:"Despacito",             artist:"Luis Fonsi",                  file:"fonsi-despacito.mp3",            cat:"world", start:15},
+  {title:"Wake Me Up",            artist:"Avicii",                      file:"avicii-wake-me-up.mp3",          cat:"world", start:20},
+  {title:"Faded",                 artist:"Alan Walker",                 file:"walker-faded.mp3",               cat:"world", start:10},
+  {title:"Alors on danse",        artist:"Stromae",                     file:"stromae-alors-on-danse.mp3",     cat:"world", start:15},
+  {title:"Somebody That I Used to Know", artist:"Gotye",               file:"gotye-somebody.mp3",             cat:"world", start:20},
+  {title:"Radioactive",           artist:"Imagine Dragons",             file:"imagine-dragons-radioactive.mp3",cat:"world", start:10},
+  {title:"Waka Waka",             artist:"Shakira",                     file:"shakira-waka-waka.mp3",          cat:"world", start:15},
+  {title:"Gasolina",              artist:"Daddy Yankee",                file:"yankee-gasolina.mp3",            cat:"world", start:10},
+  {title:"Dance Monkey",          artist:"Tones and I",                 file:"tones-dance-monkey.mp3",         cat:"world", start:15},
+];
+
+const SNIPPET_SEC = 10;
+const MUSIC_FOLDER = 'music/';
+const PLAYERS = ["Ернур","Настя","Катя","Айгуль апай","Арна ага","Адина","Амирлан","Нурай","Королева","Бекзат"];
+
+let scores = {};
+let currentSong = 0;
+let answerVisible = false;
+let gameOver = false;
+let snippetTimer = null;
+let progressInterval = null;
+let snippetStart = 0;
+
+const audio = document.getElementById('audioEl');
+
+function initScores(){ PLAYERS.forEach(p=>{scores[p]=0;}); }
+function initials(n){ return n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+function catTag(c){ return c==='ru'?'<span class="song-list-tag tag-ru">РУС</span>':c==='en'?'<span class="song-list-tag tag-en">ENG</span>':'<span class="song-list-tag tag-world">МИР</span>'; }
+
+function renderPlayers(){
+  const g = document.getElementById('playersGrid');
+  g.innerHTML = '';
+  PLAYERS.forEach(name=>{
+    const d = document.createElement('div');
+    d.className = 'player-card';
+    d.innerHTML = `<div class="player-top"><div class="player-avatar">${initials(name)}</div><div class="player-name">${name}</div></div><div class="player-score" id="score_${name.replace(/ /g,'_')}">${scores[name]}</div><button class="btn-plus" onclick="addPoint('${name}')">+1</button>`;
+    g.appendChild(d);
+  });
+}
+
+function addPoint(name){
+  scores[name]++;
+  const id = 'score_'+name.replace(/ /g,'_');
+  const el = document.getElementById(id);
+  el.textContent = scores[name];
+  el.classList.remove('score-bump');
+  void el.offsetWidth;
+  el.classList.add('score-bump');
+  showToast('+1 для '+name+'! 🎉');
+}
+
+function loadSong(idx){
+  currentSong = idx;
+  const s = SONGS[idx];
+  document.getElementById('songNumber').textContent = idx+1;
+  document.getElementById('songTitle').textContent = '🎵 Песня '+(idx+1)+' из '+SONGS.length;
+  document.getElementById('progressBar').style.width = (idx/SONGS.length*100)+'%';
+  document.getElementById('progressLabel').textContent = 'Песня '+(idx)+' из '+SONGS.length;
+  answerVisible = false;
+  document.getElementById('answerReveal').classList.remove('shown');
+  document.getElementById('fileError').classList.remove('shown');
+  stopAudio();
+  audio.src = MUSIC_FOLDER + s.file;
+  audio.load();
+  setStatus('Готов к воспроизведению', false);
+  document.getElementById('timeBarFill').style.width = '0%';
+  document.getElementById('timeCur').textContent = '0:00';
+}
+
+function playSnippet(){
+  if(gameOver) return;
+  clearSnippetTimer(); clearProg();
+  const s = SONGS[currentSong];
+  audio.src = MUSIC_FOLDER + s.file;
+  snippetStart = s.start;
+  audio.currentTime = s.start;
+  const p = audio.play();
+  if(p) p.catch(()=>{ showFileError(s.file); });
+  setStatus('Воспроизведение...', true);
+  document.getElementById('timeBarFill').style.width = '0%';
+  document.getElementById('timeCur').textContent = '0:00';
+  snippetTimer = setTimeout(()=>stopAudio(), SNIPPET_SEC*1000+300);
+  startProg();
+}
+
+function stopAudio(){
+  clearSnippetTimer(); clearProg();
+  if(!audio.paused) audio.pause();
+  setStatus('Стоп', false);
+  document.getElementById('timeBarFill').style.width = '0%';
+  document.getElementById('timeCur').textContent = '0:00';
+}
+
+function clearSnippetTimer(){ if(snippetTimer){clearTimeout(snippetTimer);snippetTimer=null;} }
+function clearProg(){ if(progressInterval){clearInterval(progressInterval);progressInterval=null;} }
+
+function startProg(){
+  clearProg();
+  progressInterval = setInterval(()=>{
+    if(audio.paused){ clearProg(); return; }
+    const elapsed = Math.max(0, audio.currentTime - snippetStart);
+    const pct = Math.min(elapsed/SNIPPET_SEC*100, 100);
+    document.getElementById('timeBarFill').style.width = pct+'%';
+    document.getElementById('timeCur').textContent = '0:'+Math.floor(elapsed).toString().padStart(2,'0');
+    if(elapsed >= SNIPPET_SEC) stopAudio();
+  }, 80);
+}
+
+function setStatus(txt, playing){
+  const s = document.getElementById('audioStatus');
+  s.textContent = txt; s.className = 'audio-status'+(playing?' playing':'');
+  const v = document.getElementById('audioVisual');
+  v.className = 'audio-visual'+(playing?' playing':'');
+}
+
+function showFileError(file){
+  document.getElementById('fileError').classList.add('shown');
+  document.getElementById('fileErrorPath').textContent = MUSIC_FOLDER+file;
+  setStatus('Файл не найден', false);
+}
+
+audio.addEventListener('error', ()=>{
+  if(SONGS[currentSong]) showFileError(SONGS[currentSong].file);
+  clearSnippetTimer(); clearProg();
+});
+
+audio.addEventListener('canplay', ()=>{
+  if(document.getElementById('fileError').classList.contains('shown') &&
+     !audio.error){ document.getElementById('fileError').classList.remove('shown'); }
+});
+
+function toggleAnswer(){
+  answerVisible = !answerVisible;
+  const el = document.getElementById('answerReveal');
+  if(answerVisible){
+    const s = SONGS[currentSong];
+    document.getElementById('answerText').textContent = s.title;
+    document.getElementById('answerArtist').textContent = '— '+s.artist;
+    el.classList.add('shown');
+  } else { el.classList.remove('shown'); }
+}
+
+function nextSong(){
+  if(gameOver) return;
+  stopAudio();
+  if(currentSong >= SONGS.length-1){ showFinal(); return; }
+  loadSong(currentSong+1);
+  showToast('Песня '+(currentSong+1)+' из '+SONGS.length);
+}
+
+function sorted(){ return [...PLAYERS].sort((a,b)=>scores[b]-scores[a]); }
+
+function openRanking(){
+  const s = sorted();
+  const medals=['🥇','🥈','🥉']; const cls=['gold','silver','bronze'];
+  const list = document.getElementById('rankList');
+  list.innerHTML = '';
+  s.forEach((name,i)=>{
+    const li = document.createElement('li');
+    li.className = 'rank-item';
+    li.innerHTML = `<span class="rank-pos ${cls[i]||''}">${medals[i]||(i+1)}</span><span class="rank-name">${name}</span><span class="rank-pts">${scores[name]} <small style="font-size:0.7rem;color:var(--text-muted)">очков</small></span>`;
+    list.appendChild(li);
+  });
+  document.getElementById('rankModal').classList.add('open');
+}
+
+function openSongList(){
+  const ul = document.getElementById('songListEl');
+  ul.innerHTML = '';
+  SONGS.forEach((s,i)=>{
+    const li = document.createElement('li');
+    li.className = 'song-list-item'+(i===currentSong?' active':'');
+    li.innerHTML = `<span class="song-list-num">${i+1}</span><div class="song-list-info"><div class="song-list-title">${s.title}</div><div class="song-list-artist">${s.artist}</div></div>${catTag(s.cat)}`;
+    li.onclick = ()=>{ loadSong(i); closeModal('songListModal'); showToast('Песня '+(i+1)+': '+s.title); };
+    ul.appendChild(li);
+  });
+  document.getElementById('songListModal').classList.add('open');
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function showFinal(){
+  gameOver = true;
+  document.getElementById('mainGame').style.display = 'none';
+  document.getElementById('finalScreen').classList.add('shown');
+  document.getElementById('progressBar').style.width = '100%';
+  const s = sorted();
+  const t3 = document.getElementById('top3');
+  t3.innerHTML = '';
+  [[1,'pos2','🥈'],[0,'pos1','🥇'],[2,'pos3','🥉']].forEach(([idx,cls,tr])=>{
+    if(!s[idx]) return;
+    const d = document.createElement('div');
+    d.className = 'top3-card '+cls;
+    d.innerHTML = `<span class="top3-emoji">${tr}</span><div class="top3-name">${s[idx]}</div><div class="top3-pts">${scores[s[idx]]}</div>`;
+    t3.appendChild(d);
+  });
+  const tbl = document.getElementById('finalTable');
+  tbl.innerHTML = '<tr><th>#</th><th>Игрок</th><th style="text-align:right">Очки</th></tr>';
+  s.forEach((name,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="color:var(--text-muted)">${i+1}</td><td>${name}</td><td style="text-align:right;font-weight:700;color:var(--gold-light)">${scores[name]}</td>`;
+    tbl.appendChild(tr);
+  });
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const colors=['#e91e8c','#7c3aed','#f59e0b','#a855f7','#ec4899','#fbbf24','#c084fc','#fb7185'];
+  for(let i=0;i<150;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='confetti-piece';
+      el.style.cssText=`left:${Math.random()*100}vw;width:${8+Math.random()*8}px;height:${8+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>.5?'50%':'2px'};animation-duration:${2.5+Math.random()*3}s;animation-delay:${Math.random()*2}s`;
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),6500);
+    }, i*35);
+  }
+}
+
+function resetScores(){
+  if(!confirm('Сбросить все очки?')) return;
+  PLAYERS.forEach(p=>{scores[p]=0;});
+  renderPlayers();
+  showToast('Очки сброшены');
+}
+
+function restartGame(){
+  currentSong=0; gameOver=false; answerVisible=false;
+  initScores();
+  document.getElementById('finalScreen').classList.remove('shown');
+  document.getElementById('mainGame').style.display='block';
+  renderPlayers();
+  loadSong(0);
+}
+
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+initScores(); renderPlayers(); loadSong(0);
+</script>
+</body>
+</html>
